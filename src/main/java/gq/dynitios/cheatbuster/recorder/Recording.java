@@ -3,6 +3,10 @@ package gq.dynitios.cheatbuster.recorder;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a recording of a player that started when the played engaged a recordable action.
+ * A recording can be considered 'expired' after which data *should* no longer be appended.
+ */
 public class Recording {
     private long firstUpdated;
     private long lastUpdated;
@@ -11,18 +15,18 @@ public class Recording {
     private int performedHits;
 
     private int shots;
-    private List<Float> shotForce;
+    private List<Float> shotForceList;
 
     private int brokenBlocks;
-    private List<Float> blockHardness;
+    private List<Float> blockHardnessList;
 
     private int placedBlocks;
 
-    public Recording() {
+    Recording() {
         this.firstUpdated = System.currentTimeMillis();
         this.lastUpdated = System.currentTimeMillis();
-        shotForce = new ArrayList<Float>();
-        blockHardness = new ArrayList<Float>();
+        shotForceList = new ArrayList<>();
+        blockHardnessList = new ArrayList<>();
     }
 
     /**
@@ -32,39 +36,83 @@ public class Recording {
         return Math.toIntExact(lastUpdated - firstUpdated);
     }
 
+    /**
+     * Updates the lastUpdated timestamp to the current time.
+     */
     private void setUpdated() {
-        this.lastUpdated = System.currentTimeMillis();
+        if (!isExpired()) {
+            this.lastUpdated = System.currentTimeMillis();
+        } else {
+            throw new IllegalStateException("Data should not be added to an expired recording.");
+        }
     }
 
-    public void addClick() {
+    /**
+     * Calculates the average shot force based on shotForceList
+     */
+    private double averageShotForce() {
+        return shotForceList.stream().mapToDouble(a -> a).average().orElse(0);
+    }
+
+    /**
+     * Calculates the average block hardness based on blockHardnessList
+     */
+    private double averageBlockHardness() {
+        return blockHardnessList.stream().mapToDouble(a -> a).average().orElse(0);
+    }
+
+    /**
+     * Adds a click to this recording
+     */
+    void addClick() {
         clicks++;
         this.setUpdated();
     }
 
-    public void addPerformedHit() {
+    /**
+     * Adds a performed hit to this recording. (Damaging an entity)
+     */
+    void addPerformedHit() {
         performedHits++;
         this.setUpdated();
     }
 
-    public void addShot(float force) {
+    /**
+     * Adds a bow shot to this recording.
+     *
+     * @param force The force the arrow was shot with.
+     */
+    void addShot(float force) {
         shots++;
-        shotForce.add(force);
+        shotForceList.add(force);
         this.setUpdated();
     }
 
-    public void addBlockBreak(float hardness) {
+    /**
+     * Adds a block break to this recording.
+     *
+     * @param hardness The hardness of the block that was broken.
+     */
+    void addBlockBreak(float hardness) {
         brokenBlocks++;
-        blockHardness.add(hardness);
+        blockHardnessList.add(hardness);
         this.setUpdated();
     }
 
-    public void addBlockPlace() {
+    /**
+     * Adds a block place to this recording.
+     */
+    void addBlockPlace() {
         placedBlocks++;
         this.setUpdated();
     }
 
-
-    public boolean isExpired() {
+    /**
+     * Checks if this recording has not been updated for more than 2000 milliseconds.
+     *
+     * @return true if recording has not been updated for 2000 milliseconds, otherwise false.
+     */
+    boolean isExpired() {
         return System.currentTimeMillis() - lastUpdated > 2000;
     }
 
@@ -78,13 +126,5 @@ public class Recording {
                 "Blocks broken: " + brokenBlocks + "\n" +
                 "Average Block Strength: " + averageBlockHardness() + "\n" +
                 "Blocks placed: " + placedBlocks;
-    }
-
-    private double averageShotForce() {
-        return shotForce.stream().mapToDouble(a -> a).average().orElse(0);
-    }
-
-    private double averageBlockHardness() {
-        return blockHardness.stream().mapToDouble(a -> a).average().orElse(0);
     }
 }
