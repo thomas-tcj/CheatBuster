@@ -62,6 +62,15 @@ public class Recording {
     }
 
     /**
+     * Calculates the accuracy of bow and melee hits.
+     */
+    private double accuracyPercentage() {
+        if (clicks + shots != 0) {
+            return performedHits / (clicks + shots) * 100;
+        } else return 0;
+    }
+
+    /**
      * Adds a click to this recording
      */
     void addClick() {
@@ -126,5 +135,9 @@ public class Recording {
                 "Blocks broken: " + brokenBlocks + "\n" +
                 "Average Block Strength: " + averageBlockHardness() + "\n" +
                 "Blocks placed: " + placedBlocks;
+    }
+
+    public double[] toArray() {
+        return new double[]{getRecordingTime(), clicks, performedHits, accuracyPercentage(), shots, averageShotForce(), brokenBlocks, averageBlockHardness(), placedBlocks, 0};
     }
 }

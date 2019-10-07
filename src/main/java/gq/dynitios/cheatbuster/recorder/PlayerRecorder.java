@@ -1,5 +1,6 @@
 package gq.dynitios.cheatbuster.recorder;
 
+import gq.dynitios.cheatbuster.weka.LearningSet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -10,9 +11,11 @@ import java.util.HashMap;
  */
 public class PlayerRecorder {
     private HashMap<Player, Recording> playerRecordings;
+    private LearningSet learningSet;
 
     public PlayerRecorder() {
         playerRecordings = new HashMap<>();
+        learningSet = new LearningSet();
     }
 
     /**
@@ -39,6 +42,11 @@ public class PlayerRecorder {
      */
     private void finishRecording(Recording recording) {
         Bukkit.broadcastMessage("Finished recording: " + recording.toString());
+        learningSet.addRecording(recording);
+    }
+
+    public void stopRecorder() {
+        learningSet.saveToFile();
     }
 
     /**

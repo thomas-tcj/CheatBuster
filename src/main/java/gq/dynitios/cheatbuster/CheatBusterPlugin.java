@@ -5,16 +5,17 @@ import gq.dynitios.cheatbuster.recorder.PlayerRecorder;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CheatBusterPlugin extends JavaPlugin {
+    private PlayerRecorder recorder;
 
     @Override
     public void onEnable() {
-        PlayerRecorder recorder = new PlayerRecorder();
+        recorder = new PlayerRecorder();
         RecordListener listener = new RecordListener(recorder);
         getServer().getPluginManager().registerEvents(listener, this);
     }
 
     @Override
     public void onDisable() {
-
+        recorder.stopRecorder();
     }
 }
