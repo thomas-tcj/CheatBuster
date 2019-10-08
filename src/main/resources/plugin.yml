@@ -1,3 +1,4 @@
 name: CheatBuster
 version: 1.0
 main: gq.dynitios.cheatbuster.CheatBusterPlugin
+depends: [ProtocolLib]

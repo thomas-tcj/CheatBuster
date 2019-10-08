@@ -11,6 +11,8 @@ public class Recording {
     private long firstUpdated;
     private long lastUpdated;
 
+    private int packets;
+
     private int clicks;
     private int performedHits;
 
@@ -116,6 +118,10 @@ public class Recording {
         this.setUpdated();
     }
 
+    void addPacket() {
+        packets++;
+    }
+
     /**
      * Checks if this recording has not been updated for more than 2000 milliseconds.
      *
@@ -134,10 +140,11 @@ public class Recording {
                 "Average shot force: " + averageShotForce() + "\n" +
                 "Blocks broken: " + brokenBlocks + "\n" +
                 "Average Block Strength: " + averageBlockHardness() + "\n" +
-                "Blocks placed: " + placedBlocks;
+                "Blocks placed: " + placedBlocks + "\n" +
+                "Packets captured: " + packets;
     }
 
     public double[] toArray() {
-        return new double[]{getRecordingTime(), clicks, performedHits, accuracyPercentage(), shots, averageShotForce(), brokenBlocks, averageBlockHardness(), placedBlocks, 0};
+        return new double[]{getRecordingTime(), clicks, performedHits, accuracyPercentage(), shots, averageShotForce(), brokenBlocks, averageBlockHardness(), placedBlocks, packets, 0};
     }
 }

@@ -41,7 +41,7 @@ public class PlayerRecorder {
      * Finishes an expired recording.
      */
     private void finishRecording(Recording recording) {
-        Bukkit.broadcastMessage("Finished recording: " + recording.toString());
+        Bukkit.broadcastMessage("Finished recording:\n" + recording.toString());
         learningSet.addRecording(recording);
     }
 
@@ -94,5 +94,16 @@ public class PlayerRecorder {
      */
     public void recordBlockPlace(Player player) {
         getOrStartRecording(player).addBlockPlace();
+    }
+
+    /**
+     * Adds a packet recording to the given player's recording
+     *
+     * @param player The player who sent the packet.
+     */
+    public void recordPacket(Player player) {
+        Recording recording = playerRecordings.get(player);
+        if (recording == null || recording.isExpired()) return;
+        recording.addPacket();
     }
 }
