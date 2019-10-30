@@ -23,6 +23,7 @@ public class LearningSet {
         attributes.add(new Attribute("brokenBlocks"));
         attributes.add(new Attribute("averageBlockHardness"));
         attributes.add(new Attribute("placedBlocks"));
+        attributes.add(new Attribute("packets"));
         attributes.add(new Attribute("hackType"));
 
         dataRaw = new Instances("TestInstances", attributes, 0);
