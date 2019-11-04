@@ -50,12 +50,21 @@ public class PlayerRecorder {
     }
 
     /**
-     * Adds a click to the given player's recording.
+     * Adds a left click to the given player's recording.
      *
      * @param player The player who clicked.
      */
-    public void recordClick(Player player) {
-        getOrStartRecording(player).addClick();
+    public void recordLeftClick(Player player) {
+        getOrStartRecording(player).addLeftClick();
+    }
+
+    /**
+     * Adds a right click to the given player's recording.
+     *
+     * @param player The player who clicked.
+     */
+    public void recordRightClick(Player player) {
+        getOrStartRecording(player).addRightClick();
     }
 
     /**
@@ -67,25 +76,6 @@ public class PlayerRecorder {
         getOrStartRecording(player).addPerformedHit();
     }
 
-    /**
-     * Adds a shot to the given player's recording.
-     *
-     * @param player The player who shot.
-     * @param force  The force at which was shot.
-     */
-    public void recordShoot(Player player, float force) {
-        getOrStartRecording(player).addShot(force);
-    }
-
-    /**
-     * Adds a block break to the given player's recording.
-     *
-     * @param player   The player who broke a block.
-     * @param hardness The hardness of the block.
-     */
-    public void recordBlockBreak(Player player, float hardness) {
-        getOrStartRecording(player).addBlockBreak(hardness);
-    }
 
     /**
      * Adds a block place to the given player's recording
@@ -94,16 +84,5 @@ public class PlayerRecorder {
      */
     public void recordBlockPlace(Player player) {
         getOrStartRecording(player).addBlockPlace();
-    }
-
-    /**
-     * Adds a packet recording to the given player's recording
-     *
-     * @param player The player who sent the packet.
-     */
-    public void recordPacket(Player player) {
-        Recording recording = playerRecordings.get(player);
-        if (recording == null || recording.isExpired()) return;
-        recording.addPacket();
     }
 }

@@ -1,15 +1,12 @@
 package gq.dynitios.cheatbuster.listener;
 
 import gq.dynitios.cheatbuster.recorder.PlayerRecorder;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 /**
@@ -26,7 +23,10 @@ public class RecordListener implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            this.playerRecorder.recordClick(event.getPlayer());
+            this.playerRecorder.recordLeftClick(event.getPlayer());
+        }
+        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            this.playerRecorder.recordRightClick(event.getPlayer());
         }
     }
 
@@ -38,21 +38,7 @@ public class RecordListener implements Listener {
     }
 
     @EventHandler
-    public void onShootBow(EntityShootBowEvent event) {
-        if (event.getEntity() instanceof Player) {
-            playerRecorder.recordShoot((Player) event.getEntity(), event.getForce());
-        }
-    }
-
-    @EventHandler
     public void onPlaceBlock(BlockPlaceEvent event) {
         playerRecorder.recordBlockPlace(event.getPlayer());
-    }
-
-    @EventHandler
-    public void onBlockBreak(BlockBreakEvent event) {
-        if (event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
-            playerRecorder.recordBlockBreak(event.getPlayer(), event.getBlock().getBlockData().getMaterial().getHardness());
-        }
     }
 }

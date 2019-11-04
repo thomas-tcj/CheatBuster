@@ -1,6 +1,9 @@
 package gq.dynitios.cheatbuster.recorder;
 
+import gq.dynitios.cheatbuster.tps.TpsMeter;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -11,72 +14,53 @@ public class Recording {
     private long firstUpdated;
     private long lastUpdated;
 
-    private int packets;
+    private double initialTPS;
 
-    private int clicks;
+    private List<Long> leftClickTimestamps;
+    private List<Long> leftClickDelays;
+    private int rightClickCount;
+
+    private List<Long> blockPlaceTimestamps;
+    private List<Long> blockPlaceDelays;
+
     private int performedHits;
-
-    private int shots;
-    private List<Float> shotForceList;
-
-    private int brokenBlocks;
-    private List<Float> blockHardnessList;
-
-    private int placedBlocks;
 
     Recording() {
         this.firstUpdated = System.currentTimeMillis();
         this.lastUpdated = System.currentTimeMillis();
-        shotForceList = new ArrayList<>();
-        blockHardnessList = new ArrayList<>();
-    }
-
-    /**
-     * Returns the recording time in milliseconds
-     */
-    private int getRecordingTime() {
-        return Math.toIntExact(lastUpdated - firstUpdated);
+        this.leftClickTimestamps = new ArrayList<>();
+        this.blockPlaceTimestamps = new ArrayList<>();
+        this.initialTPS = TpsMeter.getTps();
     }
 
     /**
      * Updates the lastUpdated timestamp to the current time.
      */
     private void setUpdated() {
+        setUpdated(System.currentTimeMillis());
+    }
+
+    /**
+     * Updates the lastUpdated timestamp to the given time.
+     *
+     * @param timestamp Timestamp to set lastUpdated to.
+     */
+    private void setUpdated(long timestamp) {
         if (!isExpired()) {
-            this.lastUpdated = System.currentTimeMillis();
+            this.lastUpdated = timestamp;
         } else {
             throw new IllegalStateException("Data should not be added to an expired recording.");
         }
     }
 
-    /**
-     * Calculates the average shot force based on shotForceList
-     */
-    private double averageShotForce() {
-        return shotForceList.stream().mapToDouble(a -> a).average().orElse(0);
+    void addLeftClick() {
+        long currentTimeStamp = System.currentTimeMillis();
+        leftClickTimestamps.add(currentTimeStamp);
+        this.setUpdated(currentTimeStamp);
     }
 
-    /**
-     * Calculates the average block hardness based on blockHardnessList
-     */
-    private double averageBlockHardness() {
-        return blockHardnessList.stream().mapToDouble(a -> a).average().orElse(0);
-    }
-
-    /**
-     * Calculates the accuracy of bow and melee hits.
-     */
-    private double accuracyPercentage() {
-        if (clicks + shots != 0) {
-            return performedHits / (clicks + shots) * 100;
-        } else return 0;
-    }
-
-    /**
-     * Adds a click to this recording
-     */
-    void addClick() {
-        clicks++;
+    void addRightClick() {
+        rightClickCount++;
         this.setUpdated();
     }
 
@@ -89,37 +73,12 @@ public class Recording {
     }
 
     /**
-     * Adds a bow shot to this recording.
-     *
-     * @param force The force the arrow was shot with.
-     */
-    void addShot(float force) {
-        shots++;
-        shotForceList.add(force);
-        this.setUpdated();
-    }
-
-    /**
-     * Adds a block break to this recording.
-     *
-     * @param hardness The hardness of the block that was broken.
-     */
-    void addBlockBreak(float hardness) {
-        brokenBlocks++;
-        blockHardnessList.add(hardness);
-        this.setUpdated();
-    }
-
-    /**
      * Adds a block place to this recording.
      */
     void addBlockPlace() {
-        placedBlocks++;
-        this.setUpdated();
-    }
-
-    void addPacket() {
-        packets++;
+        long currentTimeStamp = System.currentTimeMillis();
+        blockPlaceTimestamps.add(currentTimeStamp);
+        this.setUpdated(currentTimeStamp);
     }
 
     /**
@@ -131,20 +90,130 @@ public class Recording {
         return System.currentTimeMillis() - lastUpdated > 2000;
     }
 
-    @Override
-    public String toString() {
-        return "Length: " + getRecordingTime() + "\n" +
-                "Clicks: " + clicks + "\n" +
-                "Performed hits: " + performedHits + "\n" +
-                "Shots: " + shots + "\n" +
-                "Average shot force: " + averageShotForce() + "\n" +
-                "Blocks broken: " + brokenBlocks + "\n" +
-                "Average Block Strength: " + averageBlockHardness() + "\n" +
-                "Blocks placed: " + placedBlocks + "\n" +
-                "Packets captured: " + packets;
+    private double getTpsDifference() {
+        return initialTPS - TpsMeter.getTps();
     }
 
-    public double[] toArray() {
-        return new double[]{getRecordingTime(), clicks, performedHits, accuracyPercentage(), shots, averageShotForce(), brokenBlocks, averageBlockHardness(), placedBlocks, packets, 0};
+
+    private int getRecordingLength() {
+        return Math.toIntExact(lastUpdated - firstUpdated);
     }
+
+    private int getTotalLeftClicks() {
+        return leftClickTimestamps.size();
+    }
+
+    private long getMaxLeftClickDelay() {
+        if (leftClickTimestamps.size() < 2) {
+            return 0;
+        }
+        if (leftClickDelays == null) {
+            leftClickDelays = getDelays(leftClickTimestamps);
+        }
+        return Collections.max(leftClickDelays);
+    }
+
+    private double getAverageLeftClickDelay() {
+        if (leftClickDelays == null) {
+            leftClickDelays = getDelays(leftClickTimestamps);
+        }
+        return leftClickDelays.stream().mapToDouble(x -> x).average().orElse(0.0);
+    }
+
+    private long getMinLeftClickDelay() {
+        if (leftClickTimestamps.size() < 2) {
+            return 0;
+        }
+        if (leftClickDelays == null) {
+            leftClickDelays = getDelays(leftClickTimestamps);
+        }
+        return Collections.min(leftClickDelays);
+    }
+
+    private int getPerformedHits() {
+        return performedHits;
+    }
+
+    private int getTotalRightClicks() {
+        return rightClickCount;
+    }
+
+    private int getPlacedBlocks() {
+        return blockPlaceTimestamps.size();
+    }
+
+    private long getMaxPlaceDelay() {
+        if (blockPlaceTimestamps.size() < 2) {
+            return 0;
+        }
+        if (blockPlaceDelays == null) {
+            blockPlaceDelays = getDelays(blockPlaceTimestamps);
+        }
+        return Collections.max(blockPlaceDelays);
+    }
+
+    private double getAveragePlaceDelay() {
+        if (blockPlaceDelays == null) {
+            blockPlaceDelays = getDelays(blockPlaceTimestamps);
+        }
+        return blockPlaceDelays.stream().mapToDouble(x -> x).average().orElse(0.0);
+    }
+
+    private long getMinPlaceDelay() {
+        if (blockPlaceTimestamps.size() < 2) {
+            return 0;
+        }
+        if (blockPlaceDelays == null) {
+            blockPlaceDelays = getDelays(blockPlaceTimestamps);
+        }
+        return Collections.min(blockPlaceDelays);
+    }
+
+    private static List<Long> getDelays(List<Long> timestamps) {
+        List<Long> delays = new ArrayList<>();
+        for (int i = 0; i < timestamps.size() - 1; i++) {
+            long stamp = timestamps.get(i);
+            long next = timestamps.get(i + 1);
+            delays.add(next - stamp);
+        }
+        return delays;
+    }
+
+
+    @Override
+    public String toString() {
+        return "TPS Difference: " + getTpsDifference() + "\n" +
+                "Recording length: " + getRecordingLength() + "\n" +
+                "Total left clicks: " + getTotalLeftClicks() + "\n" +
+                "Maximum left click delay: " + getMaxLeftClickDelay() + "\n" +
+                "Average left click delay: " + getAverageLeftClickDelay() + "\n" +
+                "Minimum left click delay: " + getMinLeftClickDelay() + "\n" +
+                "Performed hits: " + getPerformedHits() + "\n" +
+                "Total right clicks: " + getTotalRightClicks() + "\n" +
+                "Blocks placed: " + getPlacedBlocks() + "\n" +
+                "Maximum place delay: " + getMaxPlaceDelay() + "\n" +
+                "Average place delay: " + getAveragePlaceDelay() + "\n" +
+                "Minimum place delay: " + getMinPlaceDelay() + "\n";
+    }
+
+    /**
+     * Creates an array with all data for the algorithm to process.
+     */
+    public double[] toArray() {
+        return new double[]{
+                getTpsDifference(),
+                getRecordingLength(),
+                getTotalLeftClicks(),
+                getMaxLeftClickDelay(),
+                getAverageLeftClickDelay(),
+                getMinLeftClickDelay(),
+                getPerformedHits(),
+                getTotalRightClicks(),
+                getPlacedBlocks(),
+                getMaxPlaceDelay(),
+                getAveragePlaceDelay(),
+                getMinPlaceDelay(),
+                0};
+    }
+
 }

@@ -14,16 +14,18 @@ public class LearningSet {
 
     public LearningSet() {
         ArrayList<Attribute> attributes = new ArrayList<>();
-        attributes.add(new Attribute("recordingTime"));
-        attributes.add(new Attribute("clicks"));
+        attributes.add(new Attribute("tpsDifference"));
+        attributes.add(new Attribute("recordingLength"));
+        attributes.add(new Attribute("totalLeftClicks"));
+        attributes.add(new Attribute("maxLeftClickDelay"));
+        attributes.add(new Attribute("averageLeftClickDelay"));
+        attributes.add(new Attribute("minLeftClickDelay"));
         attributes.add(new Attribute("performedHits"));
-        attributes.add(new Attribute("accuracy"));
-        attributes.add(new Attribute("shots"));
-        attributes.add(new Attribute("averageShotForce"));
-        attributes.add(new Attribute("brokenBlocks"));
-        attributes.add(new Attribute("averageBlockHardness"));
+        attributes.add(new Attribute("totalRightClicks"));
         attributes.add(new Attribute("placedBlocks"));
-        attributes.add(new Attribute("packets"));
+        attributes.add(new Attribute("maxPlaceDelay"));
+        attributes.add(new Attribute("averagePlaceDelay"));
+        attributes.add(new Attribute("minPlaceDelay"));
         attributes.add(new Attribute("hackType"));
 
         dataRaw = new Instances("TestInstances", attributes, 0);
