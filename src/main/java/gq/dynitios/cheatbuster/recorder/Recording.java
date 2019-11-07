@@ -18,10 +18,6 @@ public class Recording {
 
     private List<Long> leftClickTimestamps;
     private List<Long> leftClickDelays;
-    private int rightClickCount;
-
-    private List<Long> blockPlaceTimestamps;
-    private List<Long> blockPlaceDelays;
 
     private int performedHits;
 
@@ -29,7 +25,6 @@ public class Recording {
         this.firstUpdated = System.currentTimeMillis();
         this.lastUpdated = System.currentTimeMillis();
         this.leftClickTimestamps = new ArrayList<>();
-        this.blockPlaceTimestamps = new ArrayList<>();
         this.initialTPS = TpsMeter.getTps();
     }
 
@@ -59,10 +54,6 @@ public class Recording {
         this.setUpdated(currentTimeStamp);
     }
 
-    void addRightClick() {
-        rightClickCount++;
-        this.setUpdated();
-    }
 
     /**
      * Adds a performed hit to this recording. (Damaging an entity)
@@ -70,15 +61,6 @@ public class Recording {
     void addPerformedHit() {
         performedHits++;
         this.setUpdated();
-    }
-
-    /**
-     * Adds a block place to this recording.
-     */
-    void addBlockPlace() {
-        long currentTimeStamp = System.currentTimeMillis();
-        blockPlaceTimestamps.add(currentTimeStamp);
-        this.setUpdated(currentTimeStamp);
     }
 
     /**
@@ -134,41 +116,6 @@ public class Recording {
         return performedHits;
     }
 
-    private int getTotalRightClicks() {
-        return rightClickCount;
-    }
-
-    private int getPlacedBlocks() {
-        return blockPlaceTimestamps.size();
-    }
-
-    private long getMaxPlaceDelay() {
-        if (blockPlaceTimestamps.size() < 2) {
-            return 0;
-        }
-        if (blockPlaceDelays == null) {
-            blockPlaceDelays = getDelays(blockPlaceTimestamps);
-        }
-        return Collections.max(blockPlaceDelays);
-    }
-
-    private double getAveragePlaceDelay() {
-        if (blockPlaceDelays == null) {
-            blockPlaceDelays = getDelays(blockPlaceTimestamps);
-        }
-        return blockPlaceDelays.stream().mapToDouble(x -> x).average().orElse(0.0);
-    }
-
-    private long getMinPlaceDelay() {
-        if (blockPlaceTimestamps.size() < 2) {
-            return 0;
-        }
-        if (blockPlaceDelays == null) {
-            blockPlaceDelays = getDelays(blockPlaceTimestamps);
-        }
-        return Collections.min(blockPlaceDelays);
-    }
-
     private static List<Long> getDelays(List<Long> timestamps) {
         List<Long> delays = new ArrayList<>();
         for (int i = 0; i < timestamps.size() - 1; i++) {
@@ -188,18 +135,13 @@ public class Recording {
                 "Maximum left click delay: " + getMaxLeftClickDelay() + "\n" +
                 "Average left click delay: " + getAverageLeftClickDelay() + "\n" +
                 "Minimum left click delay: " + getMinLeftClickDelay() + "\n" +
-                "Performed hits: " + getPerformedHits() + "\n" +
-                "Total right clicks: " + getTotalRightClicks() + "\n" +
-                "Blocks placed: " + getPlacedBlocks() + "\n" +
-                "Maximum place delay: " + getMaxPlaceDelay() + "\n" +
-                "Average place delay: " + getAveragePlaceDelay() + "\n" +
-                "Minimum place delay: " + getMinPlaceDelay() + "\n";
+                "Performed hits: " + getPerformedHits();
     }
 
     /**
      * Creates an array with all data for the algorithm to process.
      */
-    public double[] toArray() {
+    double[] toArray() {
         return new double[]{
                 getTpsDifference(),
                 getRecordingLength(),
@@ -208,11 +150,6 @@ public class Recording {
                 getAverageLeftClickDelay(),
                 getMinLeftClickDelay(),
                 getPerformedHits(),
-                getTotalRightClicks(),
-                getPlacedBlocks(),
-                getMaxPlaceDelay(),
-                getAveragePlaceDelay(),
-                getMinPlaceDelay(),
                 0};
     }
 

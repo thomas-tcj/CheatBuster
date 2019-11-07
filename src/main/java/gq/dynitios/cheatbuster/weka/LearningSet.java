@@ -1,52 +1,103 @@
 package gq.dynitios.cheatbuster.weka;
 
-import gq.dynitios.cheatbuster.recorder.Recording;
-import weka.core.Attribute;
+import org.bukkit.Bukkit;
+import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.classifiers.evaluation.NominalPrediction;
+import weka.classifiers.trees.RandomForest;
 import weka.core.DenseInstance;
+import weka.core.FastVector;
+import weka.core.Instance;
 import weka.core.Instances;
 
-import java.util.ArrayList;
-
-import static weka.core.converters.ConverterUtils.DataSink;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
 
 public class LearningSet {
-    private Instances dataRaw;
+    private Instances dataSet;
 
-    public LearningSet() {
-        ArrayList<Attribute> attributes = new ArrayList<>();
-        attributes.add(new Attribute("tpsDifference"));
-        attributes.add(new Attribute("recordingLength"));
-        attributes.add(new Attribute("totalLeftClicks"));
-        attributes.add(new Attribute("maxLeftClickDelay"));
-        attributes.add(new Attribute("averageLeftClickDelay"));
-        attributes.add(new Attribute("minLeftClickDelay"));
-        attributes.add(new Attribute("performedHits"));
-        attributes.add(new Attribute("totalRightClicks"));
-        attributes.add(new Attribute("placedBlocks"));
-        attributes.add(new Attribute("maxPlaceDelay"));
-        attributes.add(new Attribute("averagePlaceDelay"));
-        attributes.add(new Attribute("minPlaceDelay"));
-        attributes.add(new Attribute("hackType"));
-
-        dataRaw = new Instances("TestInstances", attributes, 0);
-        dataRaw.setClassIndex(dataRaw.numAttributes() - 1); // Use last attribute as classIndex
+    public LearningSet() throws IOException {
+        dataSet = readDataFile();
+        dataSet.setClassIndex(dataSet.numAttributes() - 1);
     }
 
-    public void addRecording(Recording recording) {
-        double[] recordingValues = recording.toArray();
-        if (recordingValues.length != dataRaw.numAttributes()) {
-            throw new IllegalStateException("Number of attributes in array does not correspond to dataset.");
-        }
-        dataRaw.add(new DenseInstance(1.0, recordingValues));
+    private Instances readDataFile() throws IOException {
+        BufferedReader inputReader;
+        inputReader = new BufferedReader(new FileReader("./plugins/CheatBuster/learningset.arff"));
+        return new Instances(inputReader);
     }
 
-    public void saveToFile() {
-        String outputFilename = "./data/test" + System.currentTimeMillis() + ".arff";
-        try {
-            DataSink.write(outputFilename, dataRaw);
-        } catch (Exception e) {
-            System.err.println("Failed to save data to: " + outputFilename);
-            e.printStackTrace();
+    public int classify(double[] values) throws Exception {
+        Classifier model = new RandomForest();
+        model.buildClassifier(dataSet);
+
+        Instance testInstance = new DenseInstance(1.0, values);
+        testInstance.setDataset(dataSet);
+        return (int) model.classifyInstance(testInstance);
+    }
+
+    private Evaluation classify(Classifier model,
+                                Instances trainingSet, Instances testingSet) throws Exception {
+        Evaluation evaluation = new Evaluation(trainingSet);
+
+        model.buildClassifier(trainingSet);
+        evaluation.evaluateModel(model, testingSet);
+
+        return evaluation;
+    }
+
+    private double calculateAccuracy(FastVector predictions) {
+        double correct = 0;
+
+        for (int i = 0; i < predictions.size(); i++) {
+            NominalPrediction np = (NominalPrediction) predictions.elementAt(i);
+            if (np.predicted() == np.actual()) {
+                correct++;
+            }
         }
+
+        return 100 * correct / predictions.size();
+    }
+
+    private Instances[][] crossValidationSplit(Instances data) {
+        int numberOfFolds = 10;
+        Instances[][] split = new Instances[2][numberOfFolds];
+
+        for (int i = 0; i < numberOfFolds; i++) {
+            split[0][i] = data.trainCV(numberOfFolds, i);
+            split[1][i] = data.testCV(numberOfFolds, i);
+        }
+
+        return split;
+    }
+
+    public double testDataset() throws Exception {
+        // Do 10-split cross validation
+        Instances[][] split = crossValidationSplit(dataSet);
+
+        // Separate split into training and testing arrays
+        Instances[] trainingSplits = split[0];
+        Instances[] testingSplits = split[1];
+
+        // Use RandomForest classifier
+        Classifier model = new RandomForest();
+
+        // Collect every group of predictions for model in a FastVector
+        FastVector predictions = new FastVector();
+
+        // For each training-testing split pair, train and test the classifier
+        for (int i = 0; i < trainingSplits.length; i++) {
+            Evaluation validation = classify(model, trainingSplits[i], testingSplits[i]);
+            predictions.appendElements(validation.predictions());
+        }
+
+        // Calculate overall accuracy of current classifier on all splits
+        double accuracy = calculateAccuracy(predictions);
+
+        Bukkit.getLogger().log(Level.INFO, "Succesfully tested learningset.arff. Accuracy:"
+                + String.format("%.2f%%", accuracy));
+        return accuracy;
     }
 }

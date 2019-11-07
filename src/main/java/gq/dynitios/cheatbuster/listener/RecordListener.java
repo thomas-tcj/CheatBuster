@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
@@ -25,9 +24,6 @@ public class RecordListener implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
             this.playerRecorder.recordLeftClick(event.getPlayer());
         }
-        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            this.playerRecorder.recordRightClick(event.getPlayer());
-        }
     }
 
     @EventHandler
@@ -35,10 +31,5 @@ public class RecordListener implements Listener {
         if (event.getDamager() instanceof Player) {
             playerRecorder.recordPerformHit((Player) event.getDamager());
         }
-    }
-
-    @EventHandler
-    public void onPlaceBlock(BlockPlaceEvent event) {
-        playerRecorder.recordBlockPlace(event.getPlayer());
     }
 }

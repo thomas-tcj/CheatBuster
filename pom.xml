@@ -45,6 +45,10 @@
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>rayzr-repo</id>
+            <url>https://rayzr.dev/repo/</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -52,6 +56,11 @@
             <artifactId>spigot-api</artifactId>
             <version>1.14.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.rayzr522</groupId>
+            <artifactId>jsonmessage</artifactId>
+            <version>1.2.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
         <dependency>
