@@ -72,20 +72,20 @@ public class Recording {
         return System.currentTimeMillis() - lastUpdated > 2000;
     }
 
-    private double getTpsDifference() {
+    double getTpsDifference() {
         return initialTPS - TpsMeter.getTps();
     }
 
 
-    private int getRecordingLength() {
+    int getRecordingLength() {
         return Math.toIntExact(lastUpdated - firstUpdated);
     }
 
-    private int getTotalLeftClicks() {
+    int getTotalLeftClicks() {
         return leftClickTimestamps.size();
     }
 
-    private long getMaxLeftClickDelay() {
+    long getMaxLeftClickDelay() {
         if (leftClickTimestamps.size() < 2) {
             return 0;
         }
@@ -95,14 +95,14 @@ public class Recording {
         return Collections.max(leftClickDelays);
     }
 
-    private double getAverageLeftClickDelay() {
+    double getAverageLeftClickDelay() {
         if (leftClickDelays == null) {
             leftClickDelays = getDelays(leftClickTimestamps);
         }
         return leftClickDelays.stream().mapToDouble(x -> x).average().orElse(0.0);
     }
 
-    private long getMinLeftClickDelay() {
+    long getMinLeftClickDelay() {
         if (leftClickTimestamps.size() < 2) {
             return 0;
         }
@@ -112,7 +112,7 @@ public class Recording {
         return Collections.min(leftClickDelays);
     }
 
-    private int getPerformedHits() {
+    int getPerformedHits() {
         return performedHits;
     }
 
@@ -125,7 +125,6 @@ public class Recording {
         }
         return delays;
     }
-
 
     @Override
     public String toString() {

@@ -1,6 +1,7 @@
 package gq.dynitios.cheatbuster.recorder;
 
 import gq.dynitios.cheatbuster.exception.LearningSetException;
+import gq.dynitios.cheatbuster.http.Logstash;
 import gq.dynitios.cheatbuster.message.MessageHelper;
 import gq.dynitios.cheatbuster.weka.LearningSet;
 import me.rayzr522.jsonmessage.JSONMessage;
@@ -16,12 +17,12 @@ import java.util.UUID;
  */
 public class PlayerRecorder {
     private HashMap<Player, Recording> playerRecordings;
-    private HashMap<String, Recording> finishedRecordings;
     private LearningSet learningSet;
+    private Logstash logstash;
 
     public PlayerRecorder() throws LearningSetException {
         playerRecordings = new HashMap<>();
-        finishedRecordings = new HashMap<>();
+        logstash = new Logstash();
         try {
             learningSet = new LearningSet();
             learningSet.testDataset();
@@ -53,25 +54,25 @@ public class PlayerRecorder {
      * Finishes an expired recording.
      */
     private void finishRecording(Recording recording, Player player) {
-        String uuid = UUID.randomUUID().toString();
-        finishedRecordings.put(uuid, recording);
-
         try {
             long preClassifyTimestamp = System.currentTimeMillis();
-            int classificationDouble = learningSet.classify(recording.toArray());
+            int classification = learningSet.classify(recording.toArray());
             long postClassifyTimestamp = System.currentTimeMillis();
             long classificationTime = postClassifyTimestamp - preClassifyTimestamp;
             String classificationString;
 
-            if (classificationDouble == 0) {
+            if (classification == 0) {
                 classificationString = "No hacks";
-            } else if (classificationDouble == 1) {
+            } else if (classification == 1) {
                 classificationString = "Autoclicker";
-            } else if (classificationDouble == 2) {
+            } else if (classification == 2) {
                 classificationString = "KillAura";
             } else {
                 classificationString = "Unknown";
             }
+
+            FinishedRecording finishedRecording = new FinishedRecording(recording, classification);
+            logstash.sendToLogstash(finishedRecording);
 
             JSONMessage message = MessageHelper.getPluginPrefix()
                     .then("Evaluated ")
@@ -89,9 +90,6 @@ public class PlayerRecorder {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void stopRecorder() {
     }
 
     /**

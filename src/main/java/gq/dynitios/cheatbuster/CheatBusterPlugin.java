@@ -8,12 +8,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CheatBusterPlugin extends JavaPlugin {
-    private PlayerRecorder recorder;
 
     @Override
     public void onEnable() {
         try {
-            recorder = new PlayerRecorder();
+            PlayerRecorder recorder = new PlayerRecorder();
             RecordListener listener = new RecordListener(recorder);
             getServer().getPluginManager().registerEvents(listener, this);
             new TpsMeter().runTaskTimer(this, 0, 1);
@@ -26,8 +25,5 @@ public class CheatBusterPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (recorder != null) {
-            recorder.stopRecorder();
-        }
     }
 }
